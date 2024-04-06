@@ -42,13 +42,13 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-          Resource: "arn:aws:dynamodb:us-west-2:927728891088:table/circle-ci-unit-testing-table-updated"
+          Resource: "arn:aws:dynamodb:us-west-2:927728891088:table/circle-ci-unit-testing-new-table-updated"
 
 functions:
   UploadCsvToS3:
     handler: handler.uploadCsvToS3Handler
     environment:
-      TABLE_NAME: circle-ci-unit-testing-table-updated
+      TABLE_NAME: circle-ci-unit-testing-new-table-updated
       BUCKET_NAME: circle-ci-unit-testing-bucket-updated
 
 # you can add CloudFormation resource templates here
@@ -61,7 +61,7 @@ resources:
     DynamoDB:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: circle-ci-unit-testing-table-updated
+        TableName: circle-ci-unit-testing-new-table-updated
         AttributeDefinitions:
           - AttributeName: jobId
             AttributeType: S
@@ -78,4 +78,4 @@ resources:
       Value: "circle-ci-unit-testing-bucket-updated"
     DynamoDB:
       Description: "DynamoDB Table Name"
-      Value: "circle-ci-unit-testing-table-updated"
+      Value: "circle-ci-unit-testing-new-table-updated"
