@@ -1,0 +1,81 @@
+service: circleci-serverless-unit-testing
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+  # you can overwrite defaults here
+  region: us-west-2
+
+  # you can add statements to the Lambda function's IAM Role here
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+          Resource: { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "ServerlessDeploymentBucket" }]] }
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - "Ref": "ServerlessDeploymentBucket"
+                - "/*"
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+          Resource: { "Fn::Join": ["", ["arn:aws:s3:::", { "Ref": "ServerlessDeploymentBucket" }]] }
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+          Resource:
+            { "Fn::Join": ["", ["arn:aws:s3:::circle-ci-unit-testing-bucket-updated", "/*"]] }
+        - Effect: "Allow"
+          Action:
+            - dynamodb:Query
+            - dynamodb:Scan
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource: "arn:aws:dynamodb:us-west-2:927728891088:table/circle-ci-unit-testing-table-updated"
+
+functions:
+  UploadCsvToS3:
+    handler: handler.uploadCsvToS3Handler
+    environment:
+      TABLE_NAME: circle-ci-unit-testing-table-updated
+      BUCKET_NAME: circle-ci-unit-testing-bucket-updated
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    S3Bucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: circle-ci-unit-testing-bucket-updated
+    DynamoDB:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: circle-ci-unit-testing-table-updated
+        AttributeDefinitions:
+          - AttributeName: jobId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: jobId
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+
+  Outputs:
+    S3Bucket:
+      Description: "S3 Bucket Name"
+      Value: "circle-ci-unit-testing-bucket-updated"
+    DynamoDB:
+      Description: "DynamoDB Table Name"
+      Value: "circle-ci-unit-testing-table-updated"
